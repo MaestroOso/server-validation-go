@@ -1,26 +1,20 @@
 package main
 
 import (
-  "fmt" //Input Output Library
+  "fmt"
   "net/http" //Http handling
-  //"encoding/json" //Json parsing
-  "github.com/gorilla/mux"
   "os"
-  "io"
-  "./controllers"
-  "./properties"
+  "controllers"
+  "properties"
 )
 
 func initRouter( ) ( bool ){
   // Router variable
-  router := mux.NewRouter()
-
-  //Define the routes
-  router.HandleFunc( "/serverInfo/{server}", GetServerInformation ).Methods( "GET" )
+  router := controllers.InitializeRouter()
   http.Handle("/", router)
 
   //Start the router
-  error := http.ListenAndServe( port, router );
+  error := http.ListenAndServe( properties.Port, router );
   if error != nil {
     return false
   }
