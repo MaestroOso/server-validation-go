@@ -1,3 +1,4 @@
 package properties
 
-const port string = ":8080"
+const Port = ":8080"
+
