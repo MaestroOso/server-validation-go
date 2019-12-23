@@ -1,0 +1,28 @@
+package controllers
+
+import (
+  "net/http" //Http handling
+  //"encoding/json" //Json parsing
+  "io"
+)
+
+func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
+	params := mux.Vars(r)
+
+  if len(params) == 0 {
+    http.Error( w, http.StatusText( http.StatusInternalServerError ), http.StatusInternalServerError )
+  }
+
+	domain := params["server"]
+
+	if domain == "" {
+		http.Error( w, http.StatusText( http.StatusInternalServerError ), http.StatusInternalServerError )
+	}
+
+  JsonResponse( w, http.StatusOK, "{'data': 'success'}" )
+}
+
+func JsonResponse( w http.ResponseWriter, httpStatus int, data string ) {
+  w.WriteHeader( httpStatus )
+  io.WriteString( w, data );
+}
