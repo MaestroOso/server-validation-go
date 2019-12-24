@@ -10,7 +10,7 @@ import (
   "database/sql"
 )
 
-func GetServerInformationService( domain string ) ( entities.DomainModel, error ) {
+func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainModel, error ) {
     var model entities.DomainModel
 
     //Get Information from SSL labs
@@ -59,15 +59,30 @@ func GetServerInformationService( domain string ) ( entities.DomainModel, error 
     model.Logo = logo
     model.Title = title
 
+    insertResponse, dbinserterror := cockroachdb.CreateOrUpdateDomain( db, model, domain )
+
+    if dbinserterror != nil || insertResponse == false {
+      return entities.DomainModel{}, dbinserterror
+    }
+
     return model, nil
 }
 
-func GetHistory( db *sql.DB ) ( []cockroachdb.DomainDbModel, error ){
+func GetHistory( db *sql.DB ) ( entities.HistoryModel, error ){
   domains, err := cockroachdb.GetDomains( db )
 
   if err != nil {
-    return []cockroachdb.DomainDbModel{}, err
+    return entities.HistoryModel{}, err
   }
 
-  return domains, nil
+  var response entities.HistoryModel
+
+  for i := 0; i< len(domains); i++ {
+    entity := entities.DomainDataModel{ domains[i].Host }
+    response.Items = append(response.Items, entity)
+  }
+
+  fmt.Println("Domains in Server is", response)
+
+  return response, nil
 }
