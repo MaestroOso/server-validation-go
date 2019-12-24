@@ -6,9 +6,18 @@ import (
   "github.com/gorilla/mux"
   "services"
   "cockroachdb"
+  "fmt"
 )
 
 func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
+  //Init db connection
+  db, dberror := cockroachdb.OpenConnection();
+
+  if dberror != nil {
+    http.Error( w, dberror.Error(), http.StatusInternalServerError )
+    return
+  }
+
 	params := mux.Vars( r )
 
   if len(params) == 0 {
@@ -23,7 +32,7 @@ func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
 	}
 
   //Model with data to be returned
-  response, error := services.GetServerInformationService( domain )
+  response, error := services.GetServerInformationService( db, domain )
 
   if error != nil {
     http.Error( w, error.Error(), http.StatusInternalServerError )
@@ -54,6 +63,7 @@ func GetHistory ( w http.ResponseWriter, r *http.Request ) {
     return
   }
 
+  fmt.Println("Response", response)
   data, parseerror := json.Marshal( response );
 
   if parseerror != nil {
@@ -61,6 +71,7 @@ func GetHistory ( w http.ResponseWriter, r *http.Request ) {
     return
   }
 
+  fmt.Println("Parsed data is", data)
   JsonResponse( w, http.StatusOK, data);
 
 }
