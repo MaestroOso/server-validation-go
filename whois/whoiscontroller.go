@@ -3,12 +3,12 @@ package whois
 import (
 	"net/http" //Http handling
 	"encoding/json" //Json parsing
-	"fmt"
 	"io/ioutil"
+	"log"
 )
 
 func WhoIs( domain string ) ( WhoIsRequestModel , error ) {
-
+	log.Println("Whois to get info on", domain)
 	request, err := http.Get( WhoIsApiUrl + domain )
 
 	if err != nil {
@@ -30,6 +30,5 @@ func WhoIs( domain string ) ( WhoIsRequestModel , error ) {
 		return WhoIsRequestModel{}, parseerror
 	}
 
-	fmt.Println(model)
 	return model, nil
 }
