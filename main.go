@@ -22,11 +22,10 @@ func initRouter( ) ( bool ){
 }
 
 func main() {
-  fmt.Printf( "Attempting to run application on port 8080" )
+  fmt.Printf( "Attempting to run application on port %v\n", properties.Port )
   status := initRouter( )
   if status == false {
     fmt.Printf( "Error on startup of Application" )
     os.Exit( 1 )
   }
-
 }
