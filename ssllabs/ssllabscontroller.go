@@ -3,12 +3,12 @@ package ssllabs
 import (
 	"net/http" //Http handling
 	"encoding/json" //Json parsing
-	"fmt"
+	"log"
 	"io/ioutil"
 )
 
 func SslLabs( domain string ) ( SslLabsRequestModel , error ) {
-
+	log.Println( "SslLabs to get info on", domain )
 	request, err := http.Get( SslLabsApiUrl + domain )
 
 	if err != nil {
@@ -30,6 +30,5 @@ func SslLabs( domain string ) ( SslLabsRequestModel , error ) {
 		return SslLabsRequestModel{}, parseerror
 	}
 
-	fmt.Println(model)
 	return model, nil
 }
