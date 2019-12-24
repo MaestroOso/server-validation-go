@@ -1,13 +1,14 @@
 package cockroachdb
 
 import (
-  "time"
+
 )
 
 type DomainDbModel struct {
-  id int
-  consulted_time time.Time
-  host string
+  Id int
+  Host string
+  Ssl_grade string
+  Is_down bool
 }
 
 type InfoServerDbModel struct {
