@@ -2,21 +2,19 @@ package utils
 
 import (
 	"net/http" //Http handling
-	"fmt"
+	"log"
 	"io/ioutil"
   "regexp"
 )
 
 func GetWebpageInfo( domain string ) ( string, string, error ) {
-
+	log.Println( "Website to get info on", domain )
   title := ""
   icon := ""
 
 	request, err := http.Get( "http://" + domain )
-  fmt.Println( domain )
 
 	if err != nil {
-    fmt.Println("the error is", err)
 		return "", "", err
 	}
 
