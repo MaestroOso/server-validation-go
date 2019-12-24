@@ -14,7 +14,7 @@ type DomainModel struct {
   PreviousSslGrade string
   Logo string
   Title string
-  is_down bool
+  Is_down bool
 }
 
 func MakeServerInformationModel( _address string, _sslgrade string, _country string, _owner string ) ( ServerInformationModel ) {
