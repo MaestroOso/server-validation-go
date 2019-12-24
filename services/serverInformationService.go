@@ -3,14 +3,15 @@ package services
 import (
   "entities"
   "whois"
-  "fmt"
+  "log"
   "ssllabs"
   "utils"
-  "cockroachdb"
+  "cockroachdb/repository"
   "database/sql"
 )
 
 func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainModel, error ) {
+    log.Println("Initializing GetServerInformationService for", domain)
     var model entities.DomainModel
 
     //Get Information from SSL labs
@@ -20,21 +21,17 @@ func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainM
       return entities.DomainModel{}, ssllabserror
     }
 
-    fmt.Println( ssllabsresponse )
     lowestGrade := "A+"
     lowestGradeValue := utils.GradeValue( lowestGrade )
 
     for i:=0; i<len( ssllabsresponse.Endpoints ); i++ {
 
       //Get the WhoIs information for each of the servers
-      fmt.Println("Searching for", ssllabsresponse.Endpoints[i].IpAddress)
       whoisresponse, whoiserror := whois.WhoIs( ssllabsresponse.Endpoints[i].IpAddress )
 
       if whoiserror != nil {
         return entities.DomainModel{}, whoiserror
       }
-
-      fmt.Println( whoisresponse )
 
       if utils.GradeValue ( ssllabsresponse.Endpoints[i].Grade ) < lowestGradeValue {
         lowestGradeValue = utils.GradeValue ( ssllabsresponse.Endpoints[i].Grade )
@@ -48,10 +45,8 @@ func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainM
 
     model.SslGrade = lowestGrade;
 
-    fmt.Println("The resulting entity is", model)
-
     //Get Information from Web Page
-    logo, title, webpageerror := utils.GetWebpageInfo( domain )
+    title, logo, webpageerror := utils.GetWebpageInfo( domain )
     if webpageerror != nil {
       return entities.DomainModel{}, webpageerror
     }
@@ -59,7 +54,11 @@ func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainM
     model.Logo = logo
     model.Title = title
 
-    insertResponse, dbinserterror := cockroachdb.CreateOrUpdateDomain( db, model, domain )
+    //Query for previous ssl_grade if element exists
+    model.PreviousSslGrade = repository.GetSslGradeFromDomain( db, domain )
+
+    //Insert Data into Database
+    insertResponse, dbinserterror := repository.CreateOrUpdateDomain( db, model, domain )
 
     if dbinserterror != nil || insertResponse == false {
       return entities.DomainModel{}, dbinserterror
@@ -69,7 +68,8 @@ func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainM
 }
 
 func GetHistory( db *sql.DB ) ( entities.HistoryModel, error ){
-  domains, err := cockroachdb.GetDomains( db )
+  log.Println( "Initializing GetHistory" )
+  domains, err := repository.GetDomains( db )
 
   if err != nil {
     return entities.HistoryModel{}, err
@@ -81,8 +81,6 @@ func GetHistory( db *sql.DB ) ( entities.HistoryModel, error ){
     entity := entities.DomainDataModel{ domains[i].Host }
     response.Items = append(response.Items, entity)
   }
-
-  fmt.Println("Domains in Server is", response)
 
   return response, nil
 }
