@@ -3,32 +3,30 @@ package controllers
 import (
   "net/http" //Http handling
   "encoding/json" //Json parsing
-  "github.com/gorilla/mux"
+  "github.com/go-chi/chi"
   "services"
   "cockroachdb"
-  "fmt"
+  "log"
 )
 
 func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
+  log.Println("Controller -> GetServerInformation -> The request", r)
+
   //Init db connection
   db, dberror := cockroachdb.OpenConnection();
 
   if dberror != nil {
     http.Error( w, dberror.Error(), http.StatusInternalServerError )
+    log.Println("Database error:", dberror.Error() )
     return
   }
 
-	params := mux.Vars( r )
-
-  if len(params) == 0 {
-    http.Error( w, "params header is not present in request", http.StatusInternalServerError )
-    return
-  }
-
-	domain := params["server"]
+	domain := chi.URLParam( r, "server" )
 
 	if domain == "" {
 		http.Error( w, "domain is empty", http.StatusInternalServerError )
+    log.Println("Domain error: Domain is Empty" )
+    return
 	}
 
   //Model with data to be returned
@@ -36,22 +34,28 @@ func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
 
   if error != nil {
     http.Error( w, error.Error(), http.StatusInternalServerError )
+    log.Println("GetServerInformationService error:", error.Error() )
+    return
   }
 
   data, parseerror := json.Marshal( response );
 
   if parseerror != nil {
     http.Error( w, parseerror.Error(), http.StatusInternalServerError )
+    log.Println("Json Parsing error:", parseerror.Error() )
+    return
   }
 
   JsonResponse( w, http.StatusOK, data);
 }
 
 func GetHistory ( w http.ResponseWriter, r *http.Request ) {
+  log.Println("Controller -> GetHistory -> The request", r)
   db, dberror := cockroachdb.OpenConnection();
 
   if dberror != nil {
     http.Error( w, dberror.Error(), http.StatusInternalServerError )
+    log.Println("Database error:", dberror.Error() )
     return
   }
 
@@ -60,18 +64,19 @@ func GetHistory ( w http.ResponseWriter, r *http.Request ) {
 
   if error != nil {
     http.Error( w, error.Error(), http.StatusInternalServerError )
+    log.Println("GetHistory error:", error.Error() )
     return
   }
 
-  fmt.Println("Response", response)
+  log.Println("Created response model", response)
   data, parseerror := json.Marshal( response );
 
   if parseerror != nil {
     http.Error( w, parseerror.Error(), http.StatusInternalServerError )
+    log.Println("Json Parsing error:", parseerror.Error() )
     return
   }
 
-  fmt.Println("Parsed data is", data)
   JsonResponse( w, http.StatusOK, data);
 
 }
