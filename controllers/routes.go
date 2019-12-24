@@ -2,8 +2,8 @@ package controllers
 
 import (
     "net/http"
-    "github.com/gorilla/mux"
-    "fmt"
+    "github.com/go-chi/chi"
+    "log"
 )
 
 type Route struct {
@@ -25,14 +25,19 @@ var routes = []Route {
     },
 }
 
-func InitializeRouter() ( *mux.Router ) {
+func InitializeRouter() ( *chi.Mux ) {
 
-    router := mux.NewRouter()
-    fmt.Println("Created Router")
+    router := chi.NewRouter()
+    log.Println("Created Router")
 
     for i:=0; i<len(routes); i++ {
-      fmt.Println("Adding route", routes[i].Url)
-      router.HandleFunc( routes[i].Url, routes[i].HandlerFunc ).Methods( routes[i].Method )
+      log.Println("Adding route", routes[i].Url)
+      switch routes[i].Method {
+        case "GET":
+          router.Get( routes[i].Url, routes[i].HandlerFunc )
+        case "POST":
+          router.Post( routes[i].Url, routes[i].HandlerFunc )
+      }
     }
 
     return router
