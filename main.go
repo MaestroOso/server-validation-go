@@ -1,11 +1,11 @@
 package main
 
 import (
-  "fmt"
   "net/http" //Http handling
   "os"
   "controllers"
   "properties"
+  "log"
 )
 
 func initRouter( ) ( bool ){
@@ -22,10 +22,11 @@ func initRouter( ) ( bool ){
 }
 
 func main() {
-  fmt.Printf( "Attempting to run application on port %v\n", properties.Port )
+  //Logging should be done on a file
+  log.Printf( "Attempting to run application on port %v\n", properties.Port )
   status := initRouter( )
   if status == false {
-    fmt.Printf( "Error on startup of Application" )
+    log.Printf( "Error on startup of Application" )
     os.Exit( 1 )
   }
 }
