@@ -6,6 +6,8 @@ import (
   "entities"
   "log"
   "time"
+  "cockroachdb/models"
+  "strconv"
 )
 
 func CreateDomainConsult( db *sql.DB,  model entities.DomainModel, id_domain int ) ( bool, error ) {
@@ -17,4 +19,36 @@ func CreateDomainConsult( db *sql.DB,  model entities.DomainModel, id_domain int
     return false, err
   }
   return true, nil
+}
+
+func SearchDomainConsultByDomainId( db *sql.DB, id_domain int ) ( []models.DomainConsultDbModel , error ) {
+  log.Println( "Query to Search DomainConsult row" )
+
+  // Execute queries
+  rows, err := db.Query("SELECT id, id_domain, consult_time, ssl_grade, title, logo, is_down FROM DOMAINCONSULT where id_domain = " + strconv.Itoa( id_domain ) )
+
+  if err != nil {
+      return []models.DomainConsultDbModel{}, err
+  }
+
+  defer rows.Close()
+  var domainconsults []models.DomainConsultDbModel
+
+  for rows.Next() {
+      var id, id_domain int
+      var consult_time time.Time
+      var ssl_grade, title, logo string
+      var is_down bool
+      dataerror := rows.Scan( &id, &id_domain, &consult_time, &ssl_grade, &title, &logo, &is_down )
+
+      if dataerror != nil {
+          return []models.DomainConsultDbModel{}, err
+      }
+
+      domainconsult := models.DomainConsultDbModel{ id, id_domain, consult_time, ssl_grade, title, logo, is_down }
+      domainconsults = append(domainconsults, domainconsult)
+  }
+
+  return domainconsults, nil
+
 }
