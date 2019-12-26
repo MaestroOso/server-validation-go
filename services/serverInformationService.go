@@ -38,7 +38,7 @@ func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainM
         lowestGrade = ssllabsresponse.Endpoints[i].Grade
       }
       newEntity := entities.MakeServerInformationModel( ssllabsresponse.Endpoints[i].IpAddress, ssllabsresponse.Endpoints[i].Grade,
-            whoisresponse.Country, "")
+            whoisresponse.Country, whoisresponse.Isp)
 
       model.Servers = append( model.Servers, newEntity )
     }
@@ -65,22 +65,4 @@ func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainM
     }
 
     return model, nil
-}
-
-func GetHistory( db *sql.DB ) ( entities.HistoryModel, error ){
-  log.Println( "Initializing GetHistory" )
-  domains, err := repository.GetDomains( db )
-
-  if err != nil {
-    return entities.HistoryModel{}, err
-  }
-
-  var response entities.HistoryModel
-
-  for i := 0; i< len(domains); i++ {
-    entity := entities.DomainDataModel{ domains[i].Host }
-    response.Items = append(response.Items, entity)
-  }
-
-  return response, nil
 }
