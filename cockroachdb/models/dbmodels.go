@@ -1,5 +1,9 @@
 package models
 
+import (
+  "time"
+)
+
 type DomainDbModel struct {
   Id int
   Host string
@@ -7,15 +11,14 @@ type DomainDbModel struct {
   Is_down bool
 }
 
-type InfoServerDbModel struct {
-  id int
-  servers_changed bool
-  ssl_grade string
-  previous_ssl_grade string
-  logo string
-  title string
-  is_down bool
-  domain_id int
+type DomainConsultDbModel struct {
+  Id int
+  Id_domain int
+  Consult_time time.Time
+  Ssl_grade string
+  Title string
+  Logo string
+  Is_down bool
 }
 
 type ServerDbModel struct {
