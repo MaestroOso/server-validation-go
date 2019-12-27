@@ -5,21 +5,11 @@ import (
   "encoding/json" //Json parsing
   "github.com/go-chi/chi"
   "services"
-  "cockroachdb"
   "log"
 )
 
 func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
   log.Println("Controller -> GetServerInformation -> The request", r)
-
-  //Init db connection
-  db, dberror := cockroachdb.OpenConnection();
-
-  if dberror != nil {
-    http.Error( w, dberror.Error(), http.StatusInternalServerError )
-    log.Println("Database error:", dberror.Error() )
-    return
-  }
 
 	domain := chi.URLParam( r, "server" )
 
@@ -30,7 +20,7 @@ func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
 	}
 
   //Model with data to be returned
-  response, error := services.GetServerInformationService( db, domain )
+  response, error := services.GetServerInformationService( domain )
 
   if error != nil {
     http.Error( w, error.Error(), http.StatusInternalServerError )
@@ -51,16 +41,9 @@ func GetServerInformation ( w http.ResponseWriter, r *http.Request ) {
 
 func GetHistory ( w http.ResponseWriter, r *http.Request ) {
   log.Println("Controller -> GetHistory -> The request", r)
-  db, dberror := cockroachdb.OpenConnection();
-
-  if dberror != nil {
-    http.Error( w, dberror.Error(), http.StatusInternalServerError )
-    log.Println("Database error:", dberror.Error() )
-    return
-  }
 
   //Model with data to be returned
-  response, error := services.GetHistory( db )
+  response, error := services.GetHistory( )
 
   if error != nil {
     http.Error( w, error.Error(), http.StatusInternalServerError )
