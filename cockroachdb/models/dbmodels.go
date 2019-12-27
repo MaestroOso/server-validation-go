@@ -22,10 +22,10 @@ type DomainConsultDbModel struct {
 }
 
 type ServerDbModel struct {
-  id int
-  address string
-  ssl_grade string
-  country string
-  owner string
-  infoserver_id string
+  Id int
+  Id_domainconsult int
+  Address string
+  Ssl_grade string
+  Country string
+  Owner string
 }
