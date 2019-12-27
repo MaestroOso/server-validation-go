@@ -8,7 +8,7 @@ Project uses an Api to handle requests for two routes
 ## Api Server
 
 Api is developed using Go 
-- To run make sure to download this project and set the GOPATH route to this folder so the imports are found during compilation
+- To run make sure to download this project below de GOPATH/src or set the GOPATH route to this folder so the imports are found during compilation
 - Execute: `go run main.go`
 - Api properties can be configured to set desired port in which to run it. ( Default is 8888 )
 
