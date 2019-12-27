@@ -7,11 +7,20 @@ import (
   "ssllabs"
   "utils"
   "cockroachdb/repository"
-  "database/sql"
+  "cockroachdb"
 )
 
-func GetServerInformationService( db *sql.DB, domain string ) ( entities.DomainModel, error ) {
+func GetServerInformationService( domain string ) ( entities.DomainModel, error ) {
     log.Println("Initializing GetServerInformationService for", domain)
+
+    //Init db connection
+    db, dberror := cockroachdb.OpenConnection();
+
+    if dberror != nil {
+      log.Println("Database error:", dberror.Error() )
+      return entities.DomainModel{}, dberror
+    }
+
     var model entities.DomainModel
 
     //Get Information from SSL labs
