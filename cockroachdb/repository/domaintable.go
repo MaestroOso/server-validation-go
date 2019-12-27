@@ -63,6 +63,8 @@ func CreateOrUpdateDomain( db *sql.DB,  model entities.DomainModel, domain strin
     return false, domainconsulterr
   }
 
+  // To Do: add call to function to insert into servers table
+
   return true, nil
 }
 
