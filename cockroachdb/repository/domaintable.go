@@ -83,10 +83,7 @@ func CheckIfDomainExists( db *sql.DB,  domain string ) ( int ){
   log.Println( "Query to Select id from Domain" )
 
   // Prepare and query row
-  // row := db.QueryRow( `SELECT id FROM Domain WHERE host = '$1'`, domain )
-
-  /*THIS SHOULD NOT BE DONE BUT THE QUERY ON PREVIOUS ROW IS FAILING*/
-  row := db.QueryRow( `SELECT id FROM Domain WHERE host = '` + domain + `'`)
+  row := db.QueryRow( `SELECT id FROM Domain WHERE host = $1`, domain)
   var id int
   err := row.Scan(&id)
 
@@ -101,7 +98,7 @@ func CheckIfDomainExists( db *sql.DB,  domain string ) ( int ){
 func UpdateDomain( db *sql.DB,  model entities.DomainModel, domain string ) ( bool, error ) {
   log.Println( "Query to Update Domain" )
   // Execute queries
-  _, err := db.Exec( `UPDATE DOMAIN SET(ssl_grade, is_down) = ($1,$2) WHERE host = '` + domain + `'`, model.SslGrade, model.Is_down );
+  _, err := db.Exec( `UPDATE DOMAIN SET(ssl_grade, is_down) = ($1,$2) WHERE host = $3`, model.SslGrade, model.Is_down, domain );
 
   if err != nil {
     return false, err
@@ -112,10 +109,8 @@ func UpdateDomain( db *sql.DB,  model entities.DomainModel, domain string ) ( bo
 func GetSslGradeFromDomain( db *sql.DB,  domain string ) ( string ){
   log.Println( "Query to Select ssl_grade from Domain" )
   // Prepare and query row
-  // row := db.QueryRow( `SELECT id FROM Domain WHERE host = '$1'`, domain )
+  row := db.QueryRow( `SELECT ssl_grade FROM Domain WHERE host = $1`, domain )
 
-  /*THIS SHOULD NOT BE DONE BUT THE QUERY ON PREVIOUS ROW IS FAILING*/
-  row := db.QueryRow( `SELECT ssl_grade FROM Domain WHERE host = '` + domain + `'`)
   var grade string
   err := row.Scan(&grade)
 
