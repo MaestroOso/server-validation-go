@@ -2,76 +2,63 @@ package services
 
 import (
   "entities"
-  "whois"
   "log"
-  "ssllabs"
-  "utils"
   "cockroachdb/repository"
   "cockroachdb"
 )
 
-func GetServerInformationService( domain string ) ( entities.DomainModel, error ) {
-    log.Println("Initializing GetServerInformationService for", domain)
+func GetHistory( ) ( entities.HistoryModel, error ) {
+  log.Println( "Initializing GetHistory" )
 
-    //Init db connection
-    db, dberror := cockroachdb.OpenConnection();
+  //Db Connection
+  db, dberror := cockroachdb.OpenConnection();
 
-    if dberror != nil {
-      log.Println("Database error:", dberror.Error() )
-      return entities.DomainModel{}, dberror
+  if dberror != nil {
+    log.Println("Database error:", dberror.Error() )
+    return entities.HistoryModel{}, dberror
+  }
+
+  //Get all looked up domains
+  domains, err := repository.GetDomains( db )
+
+  if err != nil {
+    return entities.HistoryModel{}, err
+  }
+
+  var response entities.HistoryModel
+
+  for i := 0; i < len(domains); i++ {
+
+    responseHistoryDomain := entities.HistoryDomainModel{ domains[i].Host, []entities.HistoryDomainConsultModel{} }
+
+    //Lookup for all associated DomainConsult rows related with the domains
+    domainconsult, domainconsultdberror := repository.SearchDomainConsultByDomainId( db, domains[i].Id )
+
+    if domainconsultdberror != nil {
+      return entities.HistoryModel{}, domainconsultdberror
     }
 
-    var model entities.DomainModel
+    for j := 0; j < len(domainconsult); j++ {
+        responseHistoryDomainConsult := entities.HistoryDomainConsultModel{ domainconsult[j].Consult_time, domainconsult[j].Ssl_grade, domainconsult[j].Title, domainconsult[j].Logo, domainconsult[j].Is_down, []entities.HistoryServerModel{} }
 
-    //Get Information from SSL labs
-    ssllabsresponse, ssllabserror := ssllabs.SslLabs( domain );
+        server, serverdberror := repository.SearchServerByDomainConsultId( db, domainconsult[j].Id )
 
-    if ssllabserror != nil {
-      return entities.DomainModel{}, ssllabserror
+        if serverdberror != nil {
+          return entities.HistoryModel{}, domainconsultdberror
+        }
+
+        for k := 0; k < len(server); k++ {
+          responseServer := entities.HistoryServerModel{ server[k].Address, server[k].Ssl_grade, server[k].Country, server[k].Owner }
+
+          responseHistoryDomainConsult.Server = append( responseHistoryDomainConsult.Server, responseServer )
+        }
+
+        responseHistoryDomain.Servers = append( responseHistoryDomain.Servers, responseHistoryDomainConsult );
     }
 
-    lowestGrade := "A+"
-    lowestGradeValue := utils.GradeValue( lowestGrade )
 
-    for i:=0; i<len( ssllabsresponse.Endpoints ); i++ {
+    response.Items = append( response.Items, responseHistoryDomain )
+  }
 
-      //Get the WhoIs information for each of the servers
-      whoisresponse, whoiserror := whois.WhoIs( ssllabsresponse.Endpoints[i].IpAddress )
-
-      if whoiserror != nil {
-        return entities.DomainModel{}, whoiserror
-      }
-
-      if utils.GradeValue ( ssllabsresponse.Endpoints[i].Grade ) < lowestGradeValue {
-        lowestGradeValue = utils.GradeValue ( ssllabsresponse.Endpoints[i].Grade )
-        lowestGrade = ssllabsresponse.Endpoints[i].Grade
-      }
-      newEntity := entities.MakeServerInformationModel( ssllabsresponse.Endpoints[i].IpAddress, ssllabsresponse.Endpoints[i].Grade,
-            whoisresponse.Country, whoisresponse.Isp)
-
-      model.Servers = append( model.Servers, newEntity )
-    }
-
-    model.SslGrade = lowestGrade;
-
-    //Get Information from Web Page
-    title, logo, webpageerror := utils.GetWebpageInfo( domain )
-    if webpageerror != nil {
-      return entities.DomainModel{}, webpageerror
-    }
-
-    model.Logo = logo
-    model.Title = title
-
-    //Query for previous ssl_grade if element exists
-    model.PreviousSslGrade = repository.GetSslGradeFromDomain( db, domain )
-
-    //Insert Data into Database
-    insertResponse, dbinserterror := repository.CreateOrUpdateDomain( db, model, domain )
-
-    if dbinserterror != nil || insertResponse == false {
-      return entities.DomainModel{}, dbinserterror
-    }
-
-    return model, nil
+  return response, nil
 }
