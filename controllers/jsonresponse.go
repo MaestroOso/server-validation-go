@@ -5,7 +5,7 @@ import (
 )
 
 func JsonResponse( w http.ResponseWriter, httpStatus int, jsondata []byte ) {
-  w.WriteHeader( httpStatus )
   w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader( httpStatus )
   w.Write( jsondata )
 }
