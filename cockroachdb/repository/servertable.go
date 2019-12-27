@@ -6,7 +6,6 @@ import (
   "entities"
   "log"
   "cockroachdb/models"
-  "strconv"
 )
 
 func CreateServerConsult( db *sql.DB,  model entities.ServerInformationModel, id_domainconsult int ) ( bool, error ) {
@@ -25,7 +24,7 @@ func SearchServerByDomainConsultId( db *sql.DB, id_domainconsult int ) ( []model
   log.Println( "Query to Search Server row" )
 
   // Execute queries
-  rows, err := db.Query("SELECT id, id_domainconsult, address, ssl_grade, country, owner FROM SERVER where id_domainconsult = " + strconv.Itoa( id_domainconsult ) )
+  rows, err := db.Query(`SELECT id, id_domainconsult, address, ssl_grade, country, owner FROM SERVER where id_domainconsult = $1`,  id_domainconsult )
 
   if err != nil {
       return []models.ServerDbModel{}, err
